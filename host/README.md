@@ -7,7 +7,8 @@ Module and command line application for [Node.js 8+](https://nodejs.org/), which
 1. [Install](#install-)
    * [As application](#as-application-)
    * [As module](#as-module-)
-2. [Support and contribute](#support-and-contribute-)
+2. [Documentation](#documentation-)
+3. [Support and contribute](#support-and-contribute-)
 
 ### Install [[&uarr;](#table-of-contents)]
 
@@ -52,6 +53,10 @@ const HOST = new whiteboard.WhiteboardHost({
 
 await HOST.start();
 ```
+
+### Documentation [[&uarr;](#table-of-contents)]
+
+* API documentation can be found [here](https://egodigital.github.io/whiteboard/).
 
 ### Support and contribute [[&uarr;](#table-of-contents)]
 

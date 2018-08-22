@@ -9,6 +9,14 @@
     padding: 8px;
 }
 
-#ego-board .ego-file-area tr.ego-file {
-    cursor: pointer;
+#ego-board .ego-file-area .card-body {
+    padding: 0;
+}
+
+#ego-board .ego-file-area .card-body table {
+    margin: 0;
+}
+
+#ego-board .ego-file-area .card-body table .ego-functions {
+    text-align: right;
 }

@@ -167,12 +167,12 @@ function ego_load_files() {
                     const EXISTING_TABLE = FILES.find('table');
                     if (EXISTING_TABLE.length > 0) {
                         const EXISTING_FILES = [];
-                        EXISTING_TABLE.find('tbody tr').each(function() {
+                        EXISTING_TABLE.find('tbody tr.ego-file').each(function() {
                             const ROW = jQuery(this);
 
                             EXISTING_FILES.push({
                                 name: ROW.find('.ego-filename').text(),
-                                size: parseInt(ROW.find('.ego-size').text())
+                                size: parseInt(ROW.attr('ego-size'))
                             });
                         });
 
@@ -196,12 +196,24 @@ function ego_load_files() {
 
                     for (const F of response) {
                         const NEW_ROW = jQuery('<tr class="ego-file">' + 
-                                               '<td class="ego-filename" />' + 
-                                               '<td class="ego-size" />' + 
+                                               '<td class="ego-filename align-middle" />' + 
+                                               '<td class="ego-functions" />' + 
                                                '</tr>');
+                        NEW_ROW.attr('ego-size', '' + F.size);
 
                         NEW_ROW.find('.ego-filename').text(F.name);
-                        NEW_ROW.find('.ego-size').text(F.size);
+                        
+                        const DOWNLOAD_BTN = jQuery('<a class="btn btn-sm btn-primary" target="_blank">' + 
+                                                    '<i class="fa fa-download" aria-hidden="true"></i>' + 
+                                                    '</a>');
+                        {
+                            DOWNLOAD_BTN.attr('href', '/api/files/' + encodeURIComponent(F.name));
+
+                            DOWNLOAD_BTN.attr('title', "Download '" + F.name + "' ...");
+
+                            NEW_ROW.find('.ego-functions')
+                                   .append(DOWNLOAD_BTN);
+                        }
 
                         FILE_TABLE_BODY.append(NEW_ROW);
                     }

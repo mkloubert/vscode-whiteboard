@@ -1,4 +1,5 @@
 .vscode/vscode-kanban.json
 dist/
+doc/
 node_modules/
 .whiteboard/

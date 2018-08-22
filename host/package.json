@@ -12,6 +12,8 @@
   },
   "scripts": {
     "build": "(rm -r ./dist || true) && (\"./node_modules/.bin/tsc\" && \"./node_modules/.bin/tsc\" -d) && (node ./post_build.js)",
+    "doc": "(rm -r ./doc || true) && (\"./node_modules/.bin/typedoc\" --out ./doc ./src)",
+    "pack": "npm run build && npm pack",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
