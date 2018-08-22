@@ -1,0 +1,3 @@
+# CHANGELOG @egodigital/whiteboard 
+
+- unreleased

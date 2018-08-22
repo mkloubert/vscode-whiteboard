@@ -1,0 +1,8 @@
+dist/**/*.map
+node_modules
+.gitignore
+.whiteboard
+src
+post_build.js
+tsconfig.json
+tslint.json
