@@ -56,7 +56,7 @@ await HOST.start();
 
 ### Documentation [[&uarr;](#table-of-contents)]
 
-* API documentation can be found [here](https://egodigital.github.io/whiteboard/).
+API documentation can be found [here](https://egodigital.github.io/whiteboard/).
 
 ### Support and contribute [[&uarr;](#table-of-contents)]
 
