@@ -1,6 +1,7 @@
 dist/**/*.map
 node_modules
 .gitignore
+.vscode
 .whiteboard
 src
 post_build.js
