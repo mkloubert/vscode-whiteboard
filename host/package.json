@@ -1,0 +1,56 @@
+{
+  "name": "@egodigital/whiteboard",
+  "version": "0.0.1",
+  "description": "A web app and API, which provides a virtual whiteboard.",
+  "main": "dist/index.js",
+  "bin": {
+    "whiteboard": "./bin/whiteboard"
+  },
+  "private": false,
+  "directories": {
+    "dist": "dist"
+  },
+  "scripts": {
+    "build": "(rm -r ./dist || true) && (\"./node_modules/.bin/tsc\" && \"./node_modules/.bin/tsc\" -d) && (node ./post_build.js)",
+    "doc": "(rm -r ./doc || true) && (\"./node_modules/.bin/typedoc\" --out ./doc ./src)",
+    "pack": "npm run build && npm pack",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/egodigital/vscode-whiteboard.git"
+  },
+  "keywords": [
+    "whiteboard",
+    "web",
+    "app",
+    "api",
+    "host",
+    "http"
+  ],
+  "author": "e.GO Digital GmbH, Aachen, Germany",
+  "license": "LGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/egodigital/vscode-whiteboard/issues"
+  },
+  "homepage": "https://github.com/egodigital/vscode-whiteboard#readme",
+  "devDependencies": {
+    "@types/fs-extra": "^5.0.4",
+    "@types/lodash": "^4.14.116",
+    "@types/mime-types": "^2.1.0",
+    "@types/node": "^8.10.26",
+    "@types/p-queue": "^2.3.1",
+    "@types/sanitize-filename": "^1.1.28",
+    "tslint": "^5.11.0",
+    "typedoc": "^0.12.0",
+    "typescript": "^3.0.1"
+  },
+  "dependencies": {
+    "@egodigital/egoose": "^2.6.0",
+    "fs-extra": "^7.0.0",
+    "lodash": "^4.17.10",
+    "mime-types": "^2.1.19",
+    "p-queue": "^2.4.2",
+    "sanitize-filename": "^1.6.1"
+  }
+}

@@ -1,0 +1,22 @@
+
+#ego-board {
+    margin: 1rem;
+}
+
+#ego-board .ego-board-area {
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+#ego-board .ego-file-area .card-body {
+    padding: 0;
+}
+
+#ego-board .ego-file-area .card-body table {
+    margin: 0;
+}
+
+#ego-board .ego-file-area .card-body table .ego-functions {
+    text-align: right;
+}

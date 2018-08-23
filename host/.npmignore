@@ -1,0 +1,10 @@
+dist/**/*.map
+node_modules
+.gitignore
+.vscode
+.whiteboard
+doc
+src
+post_build.js
+tsconfig.json
+tslint.json

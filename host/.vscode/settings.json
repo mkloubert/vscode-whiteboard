@@ -1,0 +1,26 @@
+{
+    "deploy.reloaded": {
+        "packages": [
+            {
+                "name": "webapp",
+                "files": [
+                    "/src/webapp/**/*"
+                ],
+
+                "deployOnChange": [ "Dist folder" ]
+            }
+        ],
+
+        "targets": [
+            {
+                "name": "Dist folder",
+                "type": "local",
+                "dir": "./dist/webapp",
+
+                "mappings": {
+                    "/src/webapp/**/*": "/"
+                }
+            }
+        ]
+    }
+}
