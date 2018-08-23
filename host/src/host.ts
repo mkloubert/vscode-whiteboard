@@ -175,6 +175,8 @@ export class WhiteboardHost {
         // https://e-go-digital.com/
         context.app.use((req, res, next) => {
             res.header('X-Powered-By', 'e.GO Digital GmbH');
+            res.header('X-Ego', 'whiteboard');
+            res.header('X-Tm-Mk', '197909052309');
 
             return next();
         });

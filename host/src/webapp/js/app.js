@@ -246,6 +246,22 @@ function ego_to_string(val) {
 }
 
 jQuery(() => {
+    showdown.setFlavor('github');
+
+    showdown.setOption('completeHTMLDocument', false);
+    showdown.setOption('encodeEmails', true);
+    showdown.setOption('ghCodeBlocks', true);
+    showdown.setOption('ghCompatibleHeaderId', true);
+    showdown.setOption('headerLevelStart', 3);
+    showdown.setOption('openLinksInNewWindow', true);
+    showdown.setOption('simpleLineBreaks', true);
+    showdown.setOption('simplifiedAutoLink', true);
+    showdown.setOption('strikethrough', true);
+    showdown.setOption('tables', true);
+    showdown.setOption('tasklists', true);
+});
+
+jQuery(() => {
     ego_load_board();
 
     boardLoader = setInterval(() => {

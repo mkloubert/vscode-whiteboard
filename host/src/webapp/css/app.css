@@ -6,7 +6,11 @@
 #ego-board .ego-board-area {
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 8px;
+    padding: 64px 8px 8px 8px;
+}
+
+#ego-board .ego-file-area {
+    padding-top: 64px;
 }
 
 #ego-board .ego-file-area .card-body {
@@ -19,4 +23,15 @@
 
 #ego-board .ego-file-area .card-body table .ego-functions {
     text-align: right;
+}
+
+.ego-markdown ul.ego-task-list {
+    margin: 0 0 4px 0;
+    padding: 0 0 0 4px;
+}
+
+.ego-markdown ul.ego-task-list li.task-list-item {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
 }

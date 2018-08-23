@@ -1,0 +1,57 @@
+{
+    "name": "vscode-whiteboard",
+    "displayName": "Whiteboard",
+    "description": "A virtual whiteboard for Visual Studio Code.",
+    "version": "0.0.1",
+    "publisher": "ego-digital",
+    "engines": {
+        "vscode": "^1.26.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./out/extension",
+    "contributes": {
+        "commands": []
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.21",
+        "tslint": "^5.8.0",
+        "@types/node": "^8.10.25",
+        "@types/mocha": "^2.2.42"
+    },
+    "dependencies": {
+        "vscode-helpers": "^2.12.0"
+    },
+    "author": "e.GO Digital GmbH, Aachen, Germany",
+    "license": "LGPL-3.0",
+    "bugs": {
+        "url": "https://github.com/egodigital/vscode-whiteboard/issues"
+    },
+    "homepage": "https://github.com/egodigital/vscode-whiteboard/extension#readme",
+    "keywords": [
+        "Whiteboard",
+        "Web",
+        "App",
+        "API",
+        "Host",
+        "multi-root ready"
+    ],
+    "readmeFilename": "README.md",
+    "icon": "icon.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/egodigital/vscode-whiteboard.git"
+    }
+}
