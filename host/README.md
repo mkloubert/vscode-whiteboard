@@ -30,6 +30,8 @@ to start a host on port `80` for the current working directory.
 
 You can access the board by opening http://localhost in your browser.
 
+Use `WHITEBOARD_PORT` environment variable to specify a custom TCP port, if needed.
+
 #### As module [[&uarr;](#install-)]
 
 First run
