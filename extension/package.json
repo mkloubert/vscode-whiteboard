@@ -5,7 +5,7 @@
     "version": "0.0.1",
     "publisher": "ego-digital",
     "engines": {
-        "vscode": "^1.26.0"
+        "vscode": "^1.23.0"
     },
     "categories": [
         "Other"
@@ -15,7 +15,13 @@
     ],
     "main": "./out/extension",
     "contributes": {
-        "commands": []
+        "commands": [
+            {
+                "command": "extension.ego-digital.whiteboard.connectToBoard",
+                "title": "Connect To ...",
+                "category": "Whiteboard"
+            }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",
@@ -25,13 +31,16 @@
         "test": "npm run compile && node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "typescript": "^2.6.1",
-        "vscode": "^1.1.21",
-        "tslint": "^5.8.0",
+        "@types/mocha": "^2.2.42",
         "@types/node": "^8.10.25",
-        "@types/mocha": "^2.2.42"
+        "@types/sanitize-filename": "^1.1.28",
+        "tslint": "^5.8.0",
+        "typescript": "^2.6.1",
+        "vscode": "^1.1.21"
     },
     "dependencies": {
+        "fs-extra": "^7.0.0",
+        "sanitize-filename": "^1.6.1",
         "vscode-helpers": "^2.12.0"
     },
     "author": "e.GO Digital GmbH, Aachen, Germany",
