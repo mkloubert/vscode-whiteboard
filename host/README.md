@@ -7,8 +7,11 @@ Module and command line application for [Node.js 8+](https://nodejs.org/), which
 1. [Install](#install-)
    * [As application](#as-application-)
    * [As module](#as-module-)
-2. [Documentation](#documentation-)
-3. [Support and contribute](#support-and-contribute-)
+2. [Docker](#docker-)
+   * [Usage](#usage-)
+   * [Build image](#build-image-)
+3. [Documentation](#documentation-)
+4. [Support and contribute](#support-and-contribute-)
 
 ### Install [[&uarr;](#table-of-contents)]
 
@@ -54,6 +57,22 @@ const HOST = new whiteboard.WhiteboardHost({
 });
 
 await HOST.start();
+```
+
+### Docker [[&uarr;](#table-of-contents)]
+
+#### Usage [[&uarr;](#docker-)]
+
+You can use Docker and Docker Compose to run this project from the root folder:
+
+```
+docker-compose up
+```
+
+#### Build image [[&uarr;](#docker-)]
+
+```
+docker build -t ego-whiteboard .
 ```
 
 ### Documentation [[&uarr;](#table-of-contents)]
