@@ -262,6 +262,11 @@ export class WhiteboardHost {
                     .thenBy(x => egoose.normalizeString(x.name))
                     .toArray();
 
+                if (fileList.length < 1) {
+                    return res.status(204)
+                        .send();
+                }
+
                 return res.status(200)
                     .header('Content-Type', 'application/json; charset=utf-8')
                     .send(JSON.stringify(fileList));

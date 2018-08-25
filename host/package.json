@@ -1,6 +1,6 @@
 {
   "name": "@egodigital/whiteboard",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A web app and API, which provides a virtual whiteboard.",
   "main": "dist/index.js",
   "bin": {

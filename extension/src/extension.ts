@@ -19,12 +19,20 @@
 
 import * as _ from 'lodash';
 import * as fs from 'fs-extra';
+import * as path from 'path';
 import * as sanitizeFilename from 'sanitize-filename';
 import * as vscode from 'vscode';
 import * as vscode_helpers from 'vscode-helpers';
 import * as whiteboard from './whiteboard';
 
+interface ActionQuickPickItem extends vscode.QuickPickItem {
+    action?: Function;
+    tag?: any;
+}
+
 interface WhiteboardConnection extends vscode.Disposable {
+    readonly board: whiteboard.Whiteboard;
+    readonly options: whiteboard.WhiteboardConnectionOptions;
 }
 
 let extension: vscode.ExtensionContext;
@@ -40,6 +48,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     WF.next(() => {
         context.subscriptions.push(
+            // connectToBoard
             vscode.commands.registerCommand('extension.ego-digital.whiteboard.connectToBoard', async () => {
                 try {
                     let connectTo = vscode_helpers.toStringSafe(
@@ -111,6 +120,234 @@ export async function activate(context: vscode.ExtensionContext) {
                     showError(e);
                 }
             }),
+
+            // deleteFilesFromBoard
+            vscode.commands.registerCommand('extension.ego-digital.whiteboard.deleteFilesFromBoard', async () => {
+                try {
+                    const BOARD_QUICK_PICKS: ActionQuickPickItem[] = await WHITEBOARD_CONNECTION_QUEUE.add(async () => {
+                        return whiteboardConnections.map(wbc => {
+                            return {
+                                action: () => {
+                                    return wbc.board.listFiles();
+                                },
+                                detail: `http${ wbc.options.secure ? 's' : '' }://${ wbc.options.host }:${ wbc.options.port }/`,
+                                label: `${ wbc.options.host }:${ wbc.options.port }`,
+                                tag: wbc,
+                            };
+                        });
+                    });
+
+                    if (BOARD_QUICK_PICKS.length < 1) {
+                        vscode.window.showWarningMessage(
+                            'No open whiteboard connections found!'
+                        );
+
+                        return;
+                    }
+
+                    let selectedItems: ActionQuickPickItem[];
+                    if (1 === BOARD_QUICK_PICKS.length) {
+                        selectedItems = BOARD_QUICK_PICKS;
+                    } else {
+                        selectedItems = await vscode.window.showQuickPick(
+                            BOARD_QUICK_PICKS,
+                            {
+                                canPickMany: true,
+                            }
+                        );
+                    }
+
+                    if (!selectedItems || selectedItems.length < 1) {
+                        return;
+                    }
+
+                    const BOARD_FILES: {
+                        board: WhiteboardConnection,
+                        file: whiteboard.WhiteboardFile,
+                    }[] = [];
+                    const CANCELLED = await vscode.window.withProgress({
+                        cancellable: true,
+                        title: 'Loading file list(s) from whiteboard(s) ...',
+                        location: vscode.ProgressLocation.Notification,
+                    }, async (progress, cancelToken) => {
+                        for (const QP of BOARD_QUICK_PICKS) {
+                            if (cancelToken.isCancellationRequested) {
+                                return true;
+                            }
+
+                            for (const WBF of vscode_helpers.asArray<whiteboard.WhiteboardFile>(await QP.action())) {
+                                BOARD_FILES.push({
+                                    board: QP.tag,
+                                    file: WBF,
+                                });
+                            }
+                        }
+
+                        return false;
+                    });
+
+                    if (CANCELLED) {
+                        return;
+                    }
+
+                    const FILE_QUICK_PICKS: ActionQuickPickItem[] = await WHITEBOARD_CONNECTION_QUEUE.add(async () => {
+                        return BOARD_FILES.map(wbf => {
+                            return {
+                                action: () => {
+                                    return wbf.file['delete']();
+                                },
+                                detail: `http${ wbf.board.options.secure ? 's' : '' }://${ wbf.board.options.host }:${ wbf.board.options.port }/`,
+                                label: vscode_helpers.toStringSafe(wbf.file.name),
+                                tag: wbf,
+                            };
+                        });
+                    });
+
+                    if (FILE_QUICK_PICKS.length < 1) {
+                        vscode.window.showWarningMessage(
+                            'No whiteboard files found!'
+                        );
+
+                        return;
+                    }
+
+                    let selectedFileItems: ActionQuickPickItem[];
+                    if (1 === FILE_QUICK_PICKS.length) {
+                        selectedFileItems = FILE_QUICK_PICKS;
+                    } else {
+                        selectedFileItems = await vscode.window.showQuickPick(
+                            FILE_QUICK_PICKS,
+                            {
+                                canPickMany: true,
+                            }
+                        );
+                    }
+
+                    if (!selectedFileItems || selectedFileItems.length < 1) {
+                        return;
+                    }
+
+                    await vscode.window.withProgress({
+                        cancellable: true,
+                        title: 'Deleting files in whiteboard(s) ...',
+                        location: vscode.ProgressLocation.Notification,
+                    }, async (progress, cancelToken) => {
+                        let i = -1;
+                        const TOTAL_COUNT = selectedFileItems.length;
+
+                        for (const ITEM of selectedFileItems) {
+                            ++i;
+
+                            if (cancelToken.isCancellationRequested) {
+                                return;
+                            }
+
+                            progress.report({
+                                increment: (i + 1) / TOTAL_COUNT * 100.0,
+                                message: `Deleting file '${ vscode_helpers.toStringSafe(ITEM.tag.file.name) }' ...`,
+                            });
+
+                            await ITEM.action();
+                        }
+                    });
+                } catch (e) {
+                    showError(e);
+                }
+            }),
+
+            // uploadFilesToBoard
+            vscode.commands.registerCommand('extension.ego-digital.whiteboard.uploadFilesToBoard', async () => {
+                try {
+                    const QUICK_PICKS: ActionQuickPickItem[] = await WHITEBOARD_CONNECTION_QUEUE.add(async () => {
+                        return whiteboardConnections.map(wbc => {
+                            return {
+                                action: async (file: string) => {
+                                    await wbc.board.uploadFile(
+                                        path.basename(file),
+                                        await fs.readFile(file),
+                                    );
+                                },
+                                detail: `http${ wbc.options.secure ? 's' : '' }://${ wbc.options.host }:${ wbc.options.port }/`,
+                                label: `${ wbc.options.host }:${ wbc.options.port }`,
+                            };
+                        });
+                    });
+
+                    if (QUICK_PICKS.length < 1) {
+                        vscode.window.showWarningMessage(
+                            'No open whiteboard connections found!'
+                        );
+
+                        return;
+                    }
+
+                    let selectedItems: ActionQuickPickItem[];
+                    if (1 === QUICK_PICKS.length) {
+                        selectedItems = QUICK_PICKS;
+                    } else {
+                        selectedItems = await vscode.window.showQuickPick(
+                            QUICK_PICKS,
+                            {
+                                canPickMany: true,
+                            }
+                        );
+                    }
+
+                    if (!selectedItems || selectedItems.length < 1) {
+                        return;
+                    }
+
+                    const FILES_TO_UPLOAD = await vscode.window.showOpenDialog({
+                        canSelectFiles: true,
+                        canSelectFolders: false,
+                        canSelectMany: true,
+                    });
+
+                    if (!FILES_TO_UPLOAD || FILES_TO_UPLOAD.length < 1) {
+                        return;
+                    }
+
+                    await vscode.window.withProgress({
+                        cancellable: true,
+                        title: 'Uploading files to whiteboard(s) ...',
+                        location: vscode.ProgressLocation.Notification,
+                    }, async (progress, cancelToken) => {
+                        let i = -1;
+                        const TOTAL_COUNT = FILES_TO_UPLOAD.length * selectedItems.length;
+
+                        for (const FTU of FILES_TO_UPLOAD) {
+                            try {
+                                if (cancelToken.isCancellationRequested) {
+                                    return;
+                                }
+
+                                for (const QP of selectedItems) {
+                                    try {
+                                        ++i;
+
+                                        if (cancelToken.isCancellationRequested) {
+                                            return;
+                                        }
+
+                                        progress.report({
+                                            increment: (i + 1) / TOTAL_COUNT * 100.0,
+                                            message: `Uploading file '${ FTU.fsPath }' ...`,
+                                        });
+
+                                        await QP.action(FTU.fsPath);
+                                    } catch (e) {
+                                        showError(e);
+                                    }
+                                }
+                            } catch (e) {
+                                showError(e);
+                            }
+                        }
+                    });
+                } catch (e) {
+                    showError(e);
+                }
+            }),
         );
     });
 
@@ -131,7 +368,7 @@ function removeConnection(conn: WhiteboardConnection) {
     whiteboardConnections = whiteboardConnections.filter(wbc => wbc !== conn);
 }
 
-async function connectToBoard(opts: whiteboard.WhiteboardConnectionOptions): Promise<vscode.Disposable> {
+async function connectToBoard(opts: whiteboard.WhiteboardConnectionOptions): Promise<WhiteboardConnection> {
     const BOARD = await whiteboard.Whiteboard.connect(opts);
 
     let prefix = sanitizeFilename(`${ opts.host }_${ opts.port }`.trim());
@@ -166,6 +403,7 @@ async function connectToBoard(opts: whiteboard.WhiteboardConnectionOptions): Pro
 
     let isDisposed = false;
     const CONNECTION: WhiteboardConnection = {
+        board: BOARD,
         dispose: function() {
             if (isDisposed) {
                 return;
@@ -178,6 +416,7 @@ async function connectToBoard(opts: whiteboard.WhiteboardConnectionOptions): Pro
 
             TRY_DELETE_TEMP_FILE();
         },
+        options: opts,
     };
 
     const UPDATE_CONTENT = async () => {
