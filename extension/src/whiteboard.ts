@@ -211,6 +211,8 @@ export class Whiteboard {
      *
      * @param {string} name The name of the file.
      * @param {any} content The content of the file.
+     *
+     * @return Promise<WhiteboardFile> The promise with the file, that has been uploaded.
      */
     public async uploadFile(name: string, content: any): Promise<WhiteboardFile> {
         const RESPONSE = await vscode_helpers.POST(

@@ -150,7 +150,7 @@ function ego_load_files() {
         url: '/api/files',
         method: 'GET',
         success: (response, statusText, jqXHR) => {
-            if (200 === jqXHR.status) {
+            if ([200].indexOf(jqXHR.status) > -1) {
                 if (response.length < 1) {
                     const NO_FILES_MSG = 'No files found.';
 
@@ -259,6 +259,12 @@ jQuery(() => {
     showdown.setOption('strikethrough', true);
     showdown.setOption('tables', true);
     showdown.setOption('tasklists', true);
+});
+
+jQuery(() => {
+    jQuery('#ego-btn-edit-whiteboard').on('click', function() {
+        window.open('/editor.html', null, 'fullscreen=0,status=0,width=512,height=384,scrollbars=0,titlebar=0,location=0', true);
+    });
 });
 
 jQuery(() => {

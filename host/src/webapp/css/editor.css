@@ -1,0 +1,34 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+.CodeMirror { 
+    height: 100%; 
+    margin: 0;
+}
+
+.table {
+    margin: 0;
+    padding: 0;
+}
+
+.table-responsive {
+    display: table;
+    margin: 0;
+    padding: 0;
+}
+
+.table td, .table th {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#ego-table-whiteboard-editor {
+    padding-top: 56px;
+}
+
+.navbar-brand .fa {
+    margin-right: 8px;
+}

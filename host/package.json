@@ -1,6 +1,6 @@
 {
   "name": "@egodigital/whiteboard",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "A web app and API, which provides a virtual whiteboard.",
   "main": "dist/index.js",
   "bin": {
@@ -38,7 +38,7 @@
     "@types/fs-extra": "^5.0.4",
     "@types/lodash": "^4.14.116",
     "@types/mime-types": "^2.1.0",
-    "@types/node": "^8.10.26",
+    "@types/node": "^8.10.28",
     "@types/p-queue": "^2.3.1",
     "@types/sanitize-filename": "^1.1.28",
     "tslint": "^5.11.0",
@@ -46,7 +46,7 @@
     "typescript": "^3.0.1"
   },
   "dependencies": {
-    "@egodigital/egoose": "^2.6.0",
+    "@egodigital/egoose": "^2.7.0",
     "fs-extra": "^7.0.0",
     "lodash": "^4.17.10",
     "mime-types": "^2.1.19",
