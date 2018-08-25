@@ -6,6 +6,39 @@ let isLoadingBoard = false;
 let isLoadingFiles = false;
 let lastBoardHtml;
 
+function ego_apply_chartjs(element) {
+    element.find('pre code.language-chart, pre code.language-chartjs').each(function(i, block) {
+        const CODE_BLOCK = jQuery(block);
+        const PRE_BLOCK = CODE_BLOCK.parent();
+
+        try {
+            const CHART_OPTS = JSON.parse(
+                CODE_BLOCK.text()
+            );
+
+            const CHART_CANVAS = jQuery('<canvas />');
+
+            PRE_BLOCK.replaceWith(
+                CHART_CANVAS
+            );
+
+            if (CHART_OPTS) {
+                const CTX = CHART_CANVAS[0].getContext('2d');
+
+                new Chart(CTX, CHART_OPTS);
+            }
+        } catch (e) {
+            console.log('[e.GO] Markdown Error: ' + e);
+
+            PRE_BLOCK.replaceWith(
+                jQuery('<span />').text(
+                    CODE_BLOCK.text()
+                )
+            );
+        }
+    });
+}
+
 function ego_apply_highlight(selector) {
     selector.find('pre code').each(function(i, block) {
         hljs.highlightBlock(block);
@@ -127,6 +160,7 @@ function ego_load_board() {
 
                     ego_apply_mermaid(newContent);
                     ego_apply_highlight(newContent);
+                    ego_apply_chartjs(newContent);
                 }
             }
         },
