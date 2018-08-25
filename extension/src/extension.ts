@@ -101,9 +101,12 @@ export async function activate(context: vscode.ExtensionContext) {
                         showError(err);
                     });
 
-                    await addConnection(
-                        await connectToBoard(OPTS)
-                    );
+                    WHITEBOARD_CONNECTION_QUEUE.add(async () => {
+                        await addConnection(
+                            await connectToBoard(OPTS)
+                        );
+                    });
+
                 } catch (e) {
                     showError(e);
                 }
@@ -117,19 +120,15 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 function addConnection(conn: WhiteboardConnection) {
-    return WHITEBOARD_CONNECTION_QUEUE.add(async () => {
-        whiteboardConnections.push(conn);
+    whiteboardConnections.push(conn);
 
-        extension.subscriptions.push(
-            conn
-        );
-    });
+    extension.subscriptions.push(
+        conn
+    );
 }
 
 function removeConnection(conn: WhiteboardConnection) {
-    return WHITEBOARD_CONNECTION_QUEUE.add(async () => {
-        whiteboardConnections = whiteboardConnections.filter(wbc => wbc !== conn);
-    });
+    whiteboardConnections = whiteboardConnections.filter(wbc => wbc !== conn);
 }
 
 async function connectToBoard(opts: whiteboard.WhiteboardConnectionOptions): Promise<vscode.Disposable> {
@@ -160,8 +159,10 @@ async function connectToBoard(opts: whiteboard.WhiteboardConnectionOptions): Pro
     };
 
     let closeEvent: vscode.Disposable;
-    let contentUpdater: NodeJS.Timer;
+    let contentUpdater: vscode.Disposable;
     let editor: vscode.TextEditor;
+    const EDITOR_QUEUE = vscode_helpers.createQueue();
+    let saveEvent: vscode.Disposable;
 
     let isDisposed = false;
     const CONNECTION: WhiteboardConnection = {
@@ -171,34 +172,23 @@ async function connectToBoard(opts: whiteboard.WhiteboardConnectionOptions): Pro
             }
             isDisposed = true;
 
-            vscode_helpers.tryClearInterval(contentUpdater);
+            vscode_helpers.tryDispose(contentUpdater);
             vscode_helpers.tryDispose(closeEvent);
+            vscode_helpers.tryDispose(saveEvent);
 
             TRY_DELETE_TEMP_FILE();
         },
     };
 
-    try {
-        editor = await vscode_helpers.openAndShowTextDocument(TEMP_FILE);
+    const UPDATE_CONTENT = async () => {
+        if (vscode.window.activeTextEditor !== editor) {
+            return;
+        }
 
-        let isUpdatingContent = false;
-        contentUpdater = setInterval(() => {
-            if (isUpdatingContent) {
-                return;
-            }
-
-            isUpdatingContent = true;
-            const REACTIVATE = () => {
-                isUpdatingContent = false;
-            };
-
-            (async () => {
-                if (vscode.window.activeTextEditor !== editor) {
-                    REACTIVATE();
-                    return;
-                }
-
-                if (editor.document.isDirty) {
+        await EDITOR_QUEUE.add(async () => {
+            try {
+                const DOC = editor.document;
+                if (!DOC || DOC.isDirty) {
                     return;
                 }
 
@@ -210,28 +200,51 @@ async function connectToBoard(opts: whiteboard.WhiteboardConnectionOptions): Pro
                 if (content.toString('utf8') !== await fs.readFile(TEMP_FILE, 'utf8')) {
                     await fs.writeFile(TEMP_FILE, content);
                 }
+            } catch { }
+        });
+    };
 
-                REACTIVATE();
-            })().then(() => {
-            }, () => {
-                REACTIVATE();  // error
-            });
-        }, 1000);
+    try {
+        editor = await vscode_helpers.openAndShowTextDocument(TEMP_FILE);
 
+        contentUpdater = vscode_helpers.createInterval(UPDATE_CONTENT, 1000);
+
+        // close editor
         extension.subscriptions.push(
             closeEvent = vscode.workspace.onDidCloseTextDocument(doc => {
                 if (doc !== editor.document) {
                     return;
                 }
 
-                (async () => {
+                EDITOR_QUEUE.add(async () => {
                     await WHITEBOARD_CONNECTION_QUEUE.add(async () => {
                         CONNECTION.dispose();
 
                         await removeConnection(CONNECTION);
                     });
-                })().then(() => {
-                }, (err) => {
+                }).then(() => {
+                }, () => {
+                });
+            }),
+        );
+
+        // save editor
+        extension.subscriptions.push(
+            saveEvent = vscode.workspace.onDidSaveTextDocument(doc => {
+                if (doc !== editor.document) {
+                    return;
+                }
+
+                EDITOR_QUEUE.add(async () => {
+                    if (!(await vscode_helpers.isFile(TEMP_FILE, false))) {
+                        return;
+                    }
+
+                    await BOARD.setContent(
+                        await fs.readFile(TEMP_FILE),
+                    );
+                }).then(() => {
+                }, () => {
                 });
             }),
         );
