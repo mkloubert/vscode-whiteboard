@@ -2,7 +2,7 @@
     "name": "vscode-whiteboard",
     "displayName": "Whiteboard",
     "description": "A virtual whiteboard for Visual Studio Code.",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "ego-digital",
     "engines": {
         "vscode": "^1.23.0"
@@ -20,6 +20,16 @@
                 "command": "extension.ego-digital.whiteboard.connectToBoard",
                 "title": "Connect To ...",
                 "category": "Whiteboard"
+            },
+            {
+                "command": "extension.ego-digital.whiteboard.deleteFilesFromBoard",
+                "title": "Delete File(s) ...",
+                "category": "Whiteboard"
+            },
+            {
+                "command": "extension.ego-digital.whiteboard.uploadFilesToBoard",
+                "title": "Upload File(s) ...",
+                "category": "Whiteboard"
             }
         ]
     },
@@ -32,14 +42,16 @@
     },
     "devDependencies": {
         "@types/mocha": "^2.2.42",
-        "@types/node": "^8.10.25",
+        "@types/node": "^8.10.28",
         "@types/sanitize-filename": "^1.1.28",
         "tslint": "^5.8.0",
         "typescript": "^2.6.1",
         "vscode": "^1.1.21"
     },
     "dependencies": {
+        "@egodigital/whiteboard": "../host",
         "fs-extra": "^7.0.0",
+        "moment": "^2.22.2",
         "sanitize-filename": "^1.6.1",
         "vscode-helpers": "^2.12.0"
     },
