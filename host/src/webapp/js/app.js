@@ -324,10 +324,6 @@ jQuery(() => {
 
                             const BASE64_SEP = READER.result.indexOf(';base64,');
                             if (BASE64_SEP > -1) {
-                                alert(
-                                    READER.result.substr(BASE64_SEP + 8)
-                                );
-
                                 jQuery.ajax({
                                     'url': '/api/files/' + encodeURIComponent(FILE_TO_UPLOAD.name) + '?base64=1',
                                     'method': 'POST',
