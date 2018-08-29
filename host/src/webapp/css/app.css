@@ -30,6 +30,11 @@
     text-align: right;
 }
 
+#ego-board .ego-file-area .card-body table .ego-functions .btn {
+    margin-left: 4px;
+    padding: 0.5rem 0.75rem;
+}
+
 .ego-markdown ul.ego-task-list {
     margin: 0 0 4px 0;
     padding: 0 0 0 4px;

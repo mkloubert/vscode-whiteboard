@@ -191,10 +191,10 @@ function ego_load_files() {
 
                     if (FILES.text() !== NO_FILES_MSG) {
                         FILE_AREA.hide()
-                                 .removeClass('col-3');
+                                 .removeClass('col-3').removeClass('col-md-4');
 
                         BOARD.addClass('col-12')
-                             .removeClass('col-9');
+                             .removeClass('col-9').removeClass('col-md-8');
 
                         FILES.html('')
                              .text(NO_FILES_MSG);
@@ -251,15 +251,47 @@ function ego_load_files() {
                                    .append(DOWNLOAD_BTN);
                         }
 
+                        const DELETE_BTN = jQuery('<a class="btn btn-sm btn-danger">' + 
+                                                  '<i class="fa fa-trash" aria-hidden="true"></i>' + 
+                                                  '</a>');
+                        {
+                            DELETE_BTN.attr('title', "DELETE '" + F.name + "' ...");
+
+                            DELETE_BTN.on('click', function() {
+                                const PROMPT_BODY = jQuery("<span>Do you really want to delete '<strong />'?</span>");
+                                PROMPT_BODY.find('strong')
+                                    .text(F.name);
+
+                                ego_prompt({
+                                    body: PROMPT_BODY,
+                                    onYes() {
+                                        jQuery.ajax({
+                                            'url': '/api/files/' + encodeURIComponent(F.name),
+                                            'method': 'DELETE',
+                                            'success': (response, statusText, jqXHR) => {
+                                                if (200 === jqXHR.status) {
+                                                    ego_load_files();
+                                                }
+                                            }
+                                        });
+                                    },
+                                    title: `Delete file?`,
+                                });
+                            });
+
+                            NEW_ROW.find('.ego-functions')
+                                   .append(DELETE_BTN);
+                        }
+
                         FILE_TABLE_BODY.append(NEW_ROW);
                     }
 
                     FILES.append(FILE_TABLE);
 
-                    BOARD.addClass('col-9')
+                    BOARD.addClass('col-9').addClass('col-md-8')
                          .removeClass('col-12');
 
-                    FILE_AREA.addClass('col-3')
+                    FILE_AREA.addClass('col-3').addClass('col-md-4')
                              .show();
                 }
             }
@@ -268,6 +300,46 @@ function ego_load_files() {
             isLoadingFiles = false;
         }
     });
+}
+
+function ego_prompt(opts) {
+    const WIN = jQuery('#ego-modal-prompt');
+
+    WIN.find('.modal-title')
+       .text(opts.title);
+
+    WIN.find('.modal-body')
+       .append(opts.body);
+
+    WIN.find('.ego-btn-no').off('click').on('click', function() {
+        const NO_CTX = {
+            close: true
+        };
+
+        if (opts.onNo) {
+            opts.onNo(NO_CTX);
+        }
+
+        if (NO_CTX.close) {
+            WIN.modal('hide');
+        }
+    });
+
+    WIN.find('.ego-btn-yes').off('click').on('click', function() {
+        const YES_CTX = {
+            close: true
+        };
+
+        if (opts.onYes) {
+            opts.onYes(YES_CTX);
+        }
+
+        if (YES_CTX.close) {
+            WIN.modal('hide');
+        }
+    });
+
+    WIN.modal('show');
 }
 
 function ego_to_string(val) {
