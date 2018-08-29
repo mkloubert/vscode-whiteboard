@@ -129,6 +129,10 @@ export class WhiteboardHost {
         const GET_FILE_PATH = (filename: any) => {
             const FILES_DIR = GET_PATH('./files');
 
+            if (!fs.existsSync(FILES_DIR)) {
+                fs.mkdirsSync(FILES_DIR);
+            }
+
             const FILE_PATH = path.resolve(
                 path.join(
                     FILES_DIR, sanitizeFilename(
@@ -304,6 +308,7 @@ export class WhiteboardHost {
         context.app.post('/api/files/:filename', AUTH_USER, (req, res) => {
             return context.queue.add(async () => {
                 let filePath = GET_FILE_PATH(req.params['filename']);
+
                 if (false !== filePath) {
                     const DIR = path.dirname(filePath);
                     const EXT = path.extname(filePath);
