@@ -21,6 +21,11 @@
     margin: 0;
 }
 
+#ego-board .ego-file-area .card-body table .ego-filename {
+    max-width: 256px;
+    word-wrap: break-word;
+}
+
 #ego-board .ego-file-area .card-body table .ego-functions {
     text-align: right;
 }

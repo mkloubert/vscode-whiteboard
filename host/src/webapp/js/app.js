@@ -178,6 +178,7 @@ function ego_load_files() {
 
     const BOARD = jQuery('#ego-board .ego-board-area');
     const FILE_AREA = jQuery('#ego-board .ego-file-area');
+
     const FILES = FILE_AREA.find('.card-body');
 
     jQuery.ajax({
@@ -189,7 +190,8 @@ function ego_load_files() {
                     const NO_FILES_MSG = 'No files found.';
 
                     if (FILES.text() !== NO_FILES_MSG) {
-                        FILE_AREA.hide();
+                        FILE_AREA.hide()
+                                 .removeClass('col-3');
 
                         BOARD.addClass('col-12')
                              .removeClass('col-9');
@@ -257,7 +259,8 @@ function ego_load_files() {
                     BOARD.addClass('col-9')
                          .removeClass('col-12');
 
-                    FILE_AREA.show();
+                    FILE_AREA.addClass('col-3')
+                             .show();
                 }
             }
         },
@@ -298,6 +301,53 @@ jQuery(() => {
 jQuery(() => {
     jQuery('#ego-btn-edit-whiteboard').on('click', function() {
         window.open('/editor.html', null, 'fullscreen=0,status=0,width=512,height=384,scrollbars=0,titlebar=0,location=0', true);
+    });
+});
+
+jQuery(() => {
+    jQuery('#ego-btn-upload-file').on('click', function() {
+        const FILE_INPUT = jQuery("#ego-form-file-to-upload input[type='file']");
+
+        FILE_INPUT.off('change').on('change', function() {
+            const RAW_FILE_INPUT = jQuery(this)[0];
+
+            if (RAW_FILE_INPUT.files) {
+                if (RAW_FILE_INPUT.files.length > 0) {
+                    const FILE_TO_UPLOAD = RAW_FILE_INPUT.files[0];
+                    if (FILE_TO_UPLOAD) {
+                        const READER = new FileReader();
+
+                        READER.onloadend = function() {
+                            if (!READER.result) {
+                                return;
+                            }
+
+                            const BASE64_SEP = READER.result.indexOf(';base64,');
+                            if (BASE64_SEP > -1) {
+                                alert(
+                                    READER.result.substr(BASE64_SEP + 8)
+                                );
+
+                                jQuery.ajax({
+                                    'url': '/api/files/' + encodeURIComponent(FILE_TO_UPLOAD.name) + '?base64=1',
+                                    'method': 'POST',
+                                    'data': READER.result.substr(BASE64_SEP + 8),
+                                    'success': (response, statusText, jqXHR) => {
+                                        if (200 === jqXHR.status) {
+                                            ego_load_files();
+                                        }
+                                    }
+                                });
+                            }
+                        };
+
+                        READER.readAsDataURL(FILE_TO_UPLOAD);
+                    }
+                }
+            }
+        });
+
+        FILE_INPUT.trigger('click');
     });
 });
 

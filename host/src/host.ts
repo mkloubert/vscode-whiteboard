@@ -320,9 +320,18 @@ export class WhiteboardHost {
                         );
                     }
 
+                    let dataToWrite = await egoose.readAll(req);
+                    if ('1' === req.query['base64']) {
+                        // input data is Base64 encoded
+
+                        dataToWrite = new Buffer(
+                            dataToWrite.toString('ascii').trim(),
+                            'base64'
+                        );
+                    }
+
                     await fs.writeFile(
-                        newFilePath,
-                        await egoose.readAll(req)
+                        newFilePath, dataToWrite
                     );
 
                     return res.status(200)
