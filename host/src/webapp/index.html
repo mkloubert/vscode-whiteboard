@@ -27,9 +27,19 @@
 
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item">
-                  <a class="nav-link" id="ego-btn-edit-whiteboard">
+                  <a class="nav-link" id="ego-btn-edit-whiteboard" title="Edit Whiteboard ...">
                     <i class="fa fa-pencil" aria-hidden="true"></i>
                   </a>
+                </li>
+
+                <li class="nav-item">
+                  <a class="nav-link" id="ego-btn-upload-file" title="Upload File ...">
+                    <i class="fa fa-upload" aria-hidden="true"></i>
+                  </a>
+
+                  <form id="ego-form-file-to-upload" style="display: none;">
+                    <input type="file">
+                  </form>
                 </li>
               </ul>
             </nav>
@@ -43,7 +53,9 @@
 
                 <div class="col ego-file-area" style="display: none;">
                     <div class="card">
-                        <div class="card-header success-color lighten-1 white-text">Files</div>
+                        <div class="card-header success-color lighten-1 white-text align-middle">
+                            <span>Files</span>
+                        </div>
                         <div class="card-body">
                             <img src="/img/ajax_loader_16x11.gif" class="ego-ajax-loader">
                         </div>

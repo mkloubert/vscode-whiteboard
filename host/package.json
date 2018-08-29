@@ -46,10 +46,10 @@
     "typescript": "^3.0.1"
   },
   "dependencies": {
-    "@egodigital/egoose": "^2.7.0",
+    "@egodigital/egoose": "^2.7.4",
     "fs-extra": "^7.0.0",
     "lodash": "^4.17.10",
-    "mime-types": "^2.1.19",
+    "mime-types": "^2.1.20",
     "p-queue": "^2.4.2",
     "sanitize-filename": "^1.6.1"
   }
