@@ -18,6 +18,8 @@
  */
 
 import * as _ from 'lodash';
+import * as childProcess from 'child_process';
+import * as ego_whiteboard from '@egodigital/whiteboard';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as sanitizeFilename from 'sanitize-filename';
@@ -30,6 +32,29 @@ interface ActionQuickPickItem extends vscode.QuickPickItem {
     tag?: any;
 }
 
+/**
+ * Options for open function.
+ */
+export interface OpenOptions {
+    /**
+     * The app (or options) to open.
+     */
+    readonly app?: string | string[];
+    /**
+     * The custom working directory.
+     */
+    readonly cwd?: string;
+    /**
+     * An optional list of environment variables
+     * to submit to the new process.
+     */
+    readonly env?: any;
+    /**
+     * Wait until exit or not.
+     */
+    readonly wait?: boolean;
+}
+
 interface WhiteboardConnection extends vscode.Disposable {
     readonly board: whiteboard.Whiteboard;
     readonly options: whiteboard.WhiteboardConnectionOptions;
@@ -38,6 +63,8 @@ interface WhiteboardConnection extends vscode.Disposable {
 let extension: vscode.ExtensionContext;
 let isDeactivating = false;
 const KEY_LAST_CONNECT_TO = 'egoVSCodeWhiteboardLastConnectTo';
+const KEY_LAST_PORT = 'egoVSCodeWhiteboardLastPort';
+let nextHostButtonCommandId = Number.MIN_SAFE_INTEGER;
 const WHITEBOARD_CONNECTION_QUEUE = vscode_helpers.createQueue();
 let whiteboardConnections: WhiteboardConnection[] = [];
 
@@ -249,6 +276,122 @@ export async function activate(context: vscode.ExtensionContext) {
 
                             await ITEM.action();
                         }
+                    });
+                } catch (e) {
+                    showError(e);
+                }
+            }),
+
+            // startNewBoard
+            vscode.commands.registerCommand('extension.ego-digital.whiteboard.startNewBoard', async () => {
+                try {
+                    let port = vscode_helpers.toStringSafe(
+                        context.workspaceState.get(KEY_LAST_PORT)
+                    ).trim();
+                    if ('' === port) {
+                        port = '80';
+                    }
+
+                    port = await vscode.window.showInputBox({
+                        placeHolder: 'TCP port of the new board ...',
+                        value: port,
+                        validateInput: (v) => {
+                            const PORT = parseInt( vscode_helpers.toStringSafe(v).trim() );
+                            if (isNaN(PORT)) {
+                                return 'No number entered!';
+                            }
+
+                            if (PORT < 0 || PORT > 65535) {
+                                return 'No valid TCP port value entered!';
+                            }
+                        }
+                    });
+                    if (vscode_helpers.isEmptyString(port)) {
+                        return;
+                    }
+
+                    const TCP_PORT = parseInt(port);
+
+                    const HOST = new ego_whiteboard.WhiteboardHost({
+                        hostname: '0.0.0.0',
+                        port: TCP_PORT,
+                        root: path.join(
+                            vscode.workspace.workspaceFolders[0].uri.fsPath, '.vscode'
+                        ),
+                    });
+                    await HOST.start();
+
+                    let button: vscode.StatusBarItem;
+                    let cmd: vscode.Disposable;
+                    const CLOSE_HOST = async () => {
+                        vscode_helpers.tryDispose(button);
+                        vscode_helpers.tryDispose(cmd);
+
+                        await HOST.stop();
+                    };
+
+                    try {
+                        const CMD_NAME = `extension.ego-digital.whiteboard.hosts.buttonCommand${ nextHostButtonCommandId++ }`;
+
+                        cmd = vscode.commands.registerCommand(CMD_NAME, async () => {
+                            try {
+                                const QUICK_PICKS: ActionQuickPickItem[] = [
+                                    {
+                                        action: async () => {
+                                            const SELECTED_BTN = await vscode.window.showWarningMessage(
+                                                `Do really want to close the whiteboard at port ${ TCP_PORT }?`,
+                                                'No', 'Yes'
+                                            );
+
+                                            if ('Yes' === SELECTED_BTN) {
+                                                await CLOSE_HOST();
+                                            }
+                                        },
+                                        label: 'Close Whiteboard ...',
+                                    }
+                                ];
+
+                                const SELECTED_ITEM = await vscode.window.showQuickPick(
+                                    QUICK_PICKS, {
+                                        canPickMany: false,
+                                        placeHolder: `Select the action for whiteboard at port ${ TCP_PORT } ...`,
+                                    }
+                                );
+                                if (SELECTED_ITEM) {
+                                    await SELECTED_ITEM.action();
+                                }
+                            } catch (e) {
+                                showError(e);
+                            }
+                        });
+
+                        button = vscode.window.createStatusBarItem();
+                        button.command = CMD_NAME;
+                        button.text = `Whiteboard @ ${ TCP_PORT }`;
+                        button.tooltip = 'Click here to open list of actions ...';
+                        button.show();
+                    } catch (e) {
+                        await CLOSE_HOST();
+
+                        throw e;
+                    }
+
+                    try {
+                        await WHITEBOARD_CONNECTION_QUEUE.add(async () => {
+                            await addConnection(
+                                await connectToBoard({
+                                    host: '127.0.0.1',
+                                    port: TCP_PORT,
+                                    secure: false,
+                                })
+                            );
+                        });
+                    } catch (e) {
+                        showError(e);
+                    }
+
+                    open(`http://127.0.0.1:${ TCP_PORT }`).then(() => {
+                    }, () => {
                     });
                 } catch (e) {
                     showError(e);
@@ -501,6 +644,120 @@ export function deactivate() {
         return;
     }
     isDeactivating = true;
+}
+
+/**
+ * Opens a target.
+ *
+ * @param {string} target The target to open.
+ * @param {OpenOptions} [opts] The custom options to set.
+ *
+ * @param {Promise<childProcess.ChildProcess>} The promise with the child process.
+ */
+export function open(target: string, opts?: OpenOptions): Promise<childProcess.ChildProcess> {
+    if (!opts) {
+        opts = {};
+    }
+
+    target = vscode_helpers.toStringSafe(target);
+    const WAIT = vscode_helpers.toBooleanSafe(opts.wait, true);
+
+    return new Promise((resolve, reject) => {
+        const COMPLETED = vscode_helpers.createCompletedAction(resolve, reject);
+
+        try {
+            let app = opts.app;
+            let cmd: string;
+            let appArgs: string[] = [];
+            let args: string[] = [];
+            let cpOpts: childProcess.SpawnOptions = {
+                cwd: opts.cwd,
+                env: opts.env,
+            };
+
+            if (Array.isArray(app)) {
+                appArgs = app.slice(1);
+                app = opts.app[0];
+            }
+
+            if (process.platform === 'darwin') {
+                // Apple
+                cmd = 'open';
+
+                if (WAIT) {
+                    args.push('-W');
+                }
+
+                if (app) {
+                    args.push('-a', app);
+                }
+            } else if (process.platform === 'win32') {
+                // Microsoft
+                cmd = 'cmd';
+                args.push('/c', 'start', '""');
+                target = target.replace(/&/g, '^&');
+
+                if (WAIT) {
+                    args.push('/wait');
+                }
+
+                if (app) {
+                    args.push(app);
+                }
+
+                if (appArgs.length > 0) {
+                    args = args.concat(appArgs);
+                }
+            } else {
+                // Unix / Linux
+                if (app) {
+                    cmd = app;
+                } else {
+                    cmd = path.join(__dirname, 'xdg-open');
+                }
+
+                if (appArgs.length > 0) {
+                    args = args.concat(appArgs);
+                }
+
+                if (!WAIT) {
+                    // xdg-open will block the process unless
+                    // stdio is ignored even if it's unref'd
+                    cpOpts.stdio = 'ignore';
+                }
+            }
+
+            args.push(target);
+
+            if (process.platform === 'darwin' && appArgs.length > 0) {
+                args.push('--args');
+                args = args.concat(appArgs);
+            }
+
+            let cp = childProcess.spawn(cmd, args, cpOpts);
+
+            if (WAIT) {
+                cp.once('error', (err) => {
+                    COMPLETED(err);
+                });
+
+                cp.once('close', function (code) {
+                    if (code > 0) {
+                        COMPLETED(new Error('Exited with code ' + code));
+                        return;
+                    }
+
+                    COMPLETED(null, cp);
+                });
+            } else {
+                cp.unref();
+
+                COMPLETED(null, cp);
+            }
+        } catch (e) {
+            COMPLETED(e);
+        }
+    });
 }
 
 /**

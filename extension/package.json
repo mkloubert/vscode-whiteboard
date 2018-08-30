@@ -2,7 +2,7 @@
     "name": "vscode-whiteboard",
     "displayName": "Whiteboard",
     "description": "A virtual whiteboard for Visual Studio Code.",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "publisher": "ego-digital",
     "engines": {
         "vscode": "^1.23.0"
@@ -24,6 +24,11 @@
             {
                 "command": "extension.ego-digital.whiteboard.deleteFilesFromBoard",
                 "title": "Delete File(s) ...",
+                "category": "Whiteboard"
+            },
+            {
+                "command": "extension.ego-digital.whiteboard.startNewBoard",
+                "title": "Open Local Board ...",
                 "category": "Whiteboard"
             },
             {
